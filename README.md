@@ -1,20 +1,20 @@
 <!-- These are examples of badges you might want to add to your README:
      please update the URLs accordingly
 
-[![Built Status](https://api.cirrus-ci.com/github/<USER>/correlgraph.svg?branch=main)](https://cirrus-ci.com/github/<USER>/correlgraph)
-[![ReadTheDocs](https://readthedocs.org/projects/correlgraph/badge/?version=latest)](https://correlgraph.readthedocs.io/en/stable/)
-[![Coveralls](https://img.shields.io/coveralls/github/<USER>/correlgraph/main.svg)](https://coveralls.io/r/<USER>/correlgraph)
-[![PyPI-Server](https://img.shields.io/pypi/v/correlgraph.svg)](https://pypi.org/project/correlgraph/)
-[![Conda-Forge](https://img.shields.io/conda/vn/conda-forge/correlgraph.svg)](https://anaconda.org/conda-forge/correlgraph)
-[![Monthly Downloads](https://pepy.tech/badge/correlgraph/month)](https://pepy.tech/project/correlgraph)
-[![Twitter](https://img.shields.io/twitter/url/http/shields.io.svg?style=social&label=Twitter)](https://twitter.com/correlgraph)
+[![Built Status](https://api.cirrus-ci.com/github/<USER>/correlnet.svg?branch=main)](https://cirrus-ci.com/github/<USER>/correlnet)
+[![ReadTheDocs](https://readthedocs.org/projects/correlnet/badge/?version=latest)](https://correlnet.readthedocs.io/en/stable/)
+[![Coveralls](https://img.shields.io/coveralls/github/<USER>/correlnet/main.svg)](https://coveralls.io/r/<USER>/correlnet)
+[![PyPI-Server](https://img.shields.io/pypi/v/correlnet.svg)](https://pypi.org/project/correlnet/)
+[![Conda-Forge](https://img.shields.io/conda/vn/conda-forge/correlnet.svg)](https://anaconda.org/conda-forge/correlnet)
+[![Monthly Downloads](https://pepy.tech/badge/correlnet/month)](https://pepy.tech/project/correlnet)
+[![Twitter](https://img.shields.io/twitter/url/http/shields.io.svg?style=social&label=Twitter)](https://twitter.com/correlnet)
 -->
 
 [![Project generated with PyScaffold](https://img.shields.io/badge/-PyScaffold-005CA0?logo=pyscaffold)](https://pyscaffold.org/)
 
-# correlgraph
+# correlnet
 
-> Add a short description here!
+> Draw correlation networks!
 
 A longer description of your project goes here...
 

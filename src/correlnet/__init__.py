@@ -14,3 +14,10 @@ except PackageNotFoundError:  # pragma: no cover
     __version__ = "unknown"
 finally:
     del version, PackageNotFoundError
+
+from correlnet.correlnet import CorrelNet, correlnet
+
+__all__ = [
+    "correlnet",
+    "CorrelNet"
+]

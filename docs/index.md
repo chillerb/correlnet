@@ -1,4 +1,4 @@
-# correlgraph
+# correlnet
 
 Add a short description here!
 
