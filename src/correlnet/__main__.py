@@ -22,6 +22,8 @@ def main():
     parser.add_argument("--columns", type=str, nargs="+", help="columns to plot")
     parser.add_argument("--index-col", action="store_true", help="index column?")
     parser.add_argument("--title", type=str, default="Correlation Network", help="figure title")
+    parser.add_argument("--pos", choices=["random", "var_tsne", "correl_tsne"], default="var_tsne", help="method to compute node positions")
+    parser.add_argument("--method", choices=["pearson", "spearman", "kendall"], default="pearson", help="method to compute correlations")
     parser.add_argument("--alpha", type=float, default=0.05, help="significance threshold")
     parser.add_argument("--perplexity", type=int, default=30, help="tsne perplexity")
     parser.add_argument("--seed", type=int, default=19, help="rng seed")
@@ -39,7 +41,7 @@ def main():
     df = pd.read_csv(args.input, index_col=args.index_col)
 
     tsne_kwargs = {"perplexity": args.perplexity}
-    cg = correlnet(df, tsne_kwargs=tsne_kwargs, random_state=args.seed, alpha=args.alpha)
+    cg = correlnet(df, tsne_kwargs=tsne_kwargs, random_state=args.seed, alpha=args.alpha, method=args.method, embedding=args.pos)
 
     print("plotting")
 

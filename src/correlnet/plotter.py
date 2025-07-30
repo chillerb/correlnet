@@ -2,31 +2,50 @@
 
 import numpy as np
 
-from typing import Sequence
+from numpy.typing import ArrayLike
+from typing import Callable
 from matplotlib import pyplot as plt
 from matplotlib.cm import ScalarMappable
 from matplotlib.collections import LineCollection
 from matplotlib.colors import CenteredNorm, Normalize
+from correlnet.segments import SegmentPlotter
 
 
 class NetworkPlotter:
     """Class to plot networks with nodes and edges via matplotlib."""
 
-    def __init__(self, annotation_kwargs: dict = None, edge_snorm=None, edge_cmap: str = "coolwarm", edge_cnorm=None, edge_cbar: bool = True, node_cmap: str = "coolwarm", node_cnorm=None, max_node_label_len: int = 5):
-        self.annotation_kwargs = dict(annotation_clip=True, clip_on=True)
+    def __init__(
+        self, annotation_kwargs: dict = None, edge_snorm: Callable = None, edge_cmap: str = "coolwarm", edge_cnorm: Callable = None, edge_cbar: bool = True, node_cmap: str = "coolwarm",
+        node_cnorm: Callable = None, shorten_node_labels: bool = True, max_node_label_len: int = 5, annotate_labels: bool = True
+    ):
+        """
+        Args:
+            annotation_kwargs (dict): keyword arguments that are passed to ax.annotate for node labeling
+            edge_snorm (Callable): used to normalize edge weights to line widths
+            edge_cmap (str): Name of the matplotlib Colormap for the edges
+            edge_cnorm (Callable): used to normalize edge weights to colors from edge_cmap
+            edge_cbar (bool): Add a colorbar for the edge weights
+            node_cmap (str): Name of the matplotlib Colormap used for nodes
+            node_cnorm: (Callable): used to normalize node colors
+            shorten_node_labels (bool): If true, will shorten node labels to max_node_label_len
+            max_node_label_len (int): maximum length of node labels
+        """
+        self.annotation_kwargs = dict(annotation_clip=True, clip_on=True, ha="center", va="center")
         if annotation_kwargs is not None:
             self.annotation_kwargs.update(annotation_kwargs)
         self.edge_cmap = plt.cm.get_cmap(edge_cmap)
         self.edge_cnorm = CenteredNorm(vcenter=0) if edge_cnorm is None else edge_cnorm
         self.edge_cbar = edge_cbar
         self.edge_snorm = Normalize(vmin=1, vmax=3) if edge_snorm is None else edge_snorm
-        self.node_cnorm = plt.cm.get_cmap(node_cmap)
-        self.node_cmap = CenteredNorm(vcenter=0) if edge_cnorm is None else edge_cnorm
+        self.node_cmap = plt.cm.get_cmap(node_cmap)
+        self.node_cnorm = CenteredNorm(vcenter=0) if edge_cnorm is None else node_cnorm
+        self.shorten_node_labels = shorten_node_labels
         self.max_node_label_len = max_node_label_len
+        self.annotate_labels = annotate_labels
 
     def plot(
-        self, pos, edge_list, node_labels: Sequence[str] = None, node_sizes: Sequence[float] = None, node_colors=None, node_markers=None,
-        edge_weights: Sequence[float] = None, edge_colors=None, edge_cbar_label: str = None, title: str = None, ax: plt.Axes = None
+        self, pos, edge_list, node_labels: ArrayLike = None, node_sizes: ArrayLike = None, node_colors=None,
+        edge_weights: ArrayLike = None, edge_colors=None, edge_c=None, edge_cbar_label: str = None, ax: plt.Axes = None
     ) -> plt.Axes:
         """
         Plots a network via matplotlib.
@@ -45,42 +64,39 @@ class NetworkPlotter:
         """
         if ax is None:
             fig, ax = plt.subplots()
-        self.plot_edges(ax, pos, edge_list, edge_weights, edge_colors, edge_cbar_label)
-        self.plot_nodes(ax, pos, node_sizes, node_colors, node_markers)
-        if node_labels is not None:
+        self.plot_edges(ax, pos, edge_list, edge_weights, edge_colors, edge_c, edge_cbar_label)
+        self.plot_nodes(ax, pos, node_sizes, node_colors)
+        if node_labels is not None and self.annotate_labels:
             self.label_nodes(ax, pos, node_labels)
-        if title is not None:
-            ax.set_title(title)
+        ax.autoscale()
         return ax
 
-    def plot_edges(self, ax: plt.Axes, pos, edge_list, edge_weights=None, edge_colors=None, edge_cbar_label: str = None):
+    def plot_edges(self, ax: plt.Axes, pos, edge_list, edge_weights=None, edge_colors=None, edge_c=None, edge_cbar_label: str = None):
         """Adds the edges to the plot."""
-        segments = [(pos[i], pos[j]) for i, j in edge_list]
-        colors = None
-        if edge_colors is not None:
-            colors = self.edge_cmap(self.edge_cnorm(edge_colors))
-            if self.edge_cbar:
-                mappable = ScalarMappable(self.edge_cnorm, self.edge_cmap)
-                plt.colorbar(mappable, ax=ax, label=edge_cbar_label)
+        segments = np.array([(pos[i], pos[j]) for i, j in edge_list])
+        x, y = segments[:, 0].T
+        x_end, y_end = segments[:, 1].T
+        if edge_c is not None and self.edge_cbar:
+            mappable = ScalarMappable(self.edge_cnorm, self.edge_cmap)
+            plt.colorbar(mappable, ax=ax, label=edge_cbar_label)
         linewidths = edge_weights
         if linewidths is not None:
             linewidths = self.edge_snorm(linewidths)
-        edges = LineCollection(segments, linewidths=linewidths, colors=colors)
-        ax.add_collection(edges)
+        segment_plotter = SegmentPlotter()
+        segment_plotter.plot(x, y, x_end, y_end, linewidths, colors=edge_colors, c=edge_c, cmap=self.edge_cmap, norm=self.edge_cnorm, ax=ax)
 
-    def plot_nodes(self, ax: plt.Axes, pos, node_sizes=None, node_colors=None, node_markers=None):
+    def plot_nodes(self, ax: plt.Axes, pos, node_sizes=None, node_colors=None):
         """Adds the nodes to the plot."""
-        for i, (x, y) in enumerate(pos):
-            x, y = pos[i]
-            marker = node_markers[i] if node_markers is not None else None
-            s = node_sizes[i] if node_sizes is not None else None
-            c = node_colors[i] if node_colors is not None else None
-            ax.scatter(x, y, s=s, c=c, marker=marker, norm=self.node_cnorm, cmap=self.node_cmap)
+        x, y = np.array(pos).T
+        if node_colors is None:
+            ax.scatter(x, y, s=node_sizes)
+        else:
+            ax.scatter(x, y, s=node_sizes, c=node_colors, norm=self.node_cnorm, cmap=self.node_cmap)
 
     def label_nodes(self, ax: plt.Axes, pos, node_labels):
         """Annotates each node with the corresponding labels."""
         assert len(pos) == len(node_labels)
         for i, label in enumerate(node_labels):
-            if self.max_node_label_len >= 0:
+            if self.shorten_node_labels and self.max_node_label_len >= 0 and len(label) > self.max_node_label_len:
                 label = f"{label[:self.max_node_label_len]}."
             ax.annotate(label, pos[i], **self.annotation_kwargs)

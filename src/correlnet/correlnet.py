@@ -88,17 +88,19 @@ class CorrelNet:
         df = self.correl_df[self.correl_df["pvalue"] <= self.alpha]
         edge_list = [(self.vars.index(var_1), self.vars.index(var_2)) for var_1, var_2 in df.index]
         edge_colors = df["statistic"]
+        edge_weights = df["statistic"]
         edge_cbar_label = self.correlater.method
-        self.plotter.plot(pos, edge_list, node_labels, edge_colors=edge_colors, edge_cbar_label=edge_cbar_label)
+        self.plotter.plot(pos, edge_list, node_labels, edge_c=edge_colors, edge_weights=edge_weights, edge_cbar_label=edge_cbar_label)
         return ax
 
-    def as_netx_graph(self, apply_filter=True) -> nx.Graph:
+    def to_graph(self, apply_filter=True) -> nx.Graph:
         """Returns correlations as networkx graph with attributes [statistic, pvalue].
 
         Args:
             apply_filter (bool): If true, apply an edge filter to remove self loops and non-significant edges
         """
-        graph = nx.from_pandas_edgelist(self.correl_df, source="var_1", target="var_2", edge_attr=True)
+        df = self.correl_df.reset_index(names=["var_1", "var_2"])
+        graph = nx.from_pandas_edgelist(df, source="var_1", target="var_2", edge_attr=True)
 
         if apply_filter:
             logger.debug(f"applying edge filter with alpha={self.alpha}")

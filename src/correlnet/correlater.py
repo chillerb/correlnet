@@ -34,13 +34,11 @@ class Correlater:
                 corr = dict(var_1=var_1, var_2=var_2, statistic=statistic, pvalue=pvalue)
                 cor_dfs.append(pd.DataFrame([corr]))
         correl_df = pd.concat(cor_dfs).set_index(["var_1", "var_2"])
-        print(correl_df.head())
 
         if self.correction:
             logger.debug(f"applying {self.correction}")
             _, p_corrected, _, _ = multipletests(correl_df["pvalue"], method=self.correction)
             correl_df["pvalue"] = p_corrected
-        print(correl_df.head())
         return correl_df
 
     def cor_fn(self):
